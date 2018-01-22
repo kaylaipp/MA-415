@@ -1,0 +1,24 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1516581289309.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "C21474A5",
+    "lastKnownWriteTime" : 1516651340,
+    "last_content_update" : 1516652169351,
+    "path" : "~/Desktop/MA 415/Assignment 1/A1/A1.R",
+    "project_path" : "A1.R",
+    "properties" : {
+        "cursorPosition" : "83,8",
+        "notebook_format" : "pdf_document",
+        "scrollLine" : "60",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
