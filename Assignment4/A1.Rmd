@@ -1,0 +1,145 @@
+---
+title: "MA 415: Assignment 4"
+output: pdf_document
+author: "Kayla Ippongi"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Section 10.5 Exercises 
+1. How can you tell if an object is a tibble? (Hint: try printing mtcars, which is a regular data frame).
+```{r}
+x = c(1,2,3,4)
+print(is.tibble(x)) #will return false because x is not a tibble
+```
+
+2. Compare and contrast the following operations on a data.frame and equivalent tibble. What is different? Why might the default data frame behaviours cause you frustration?
+\begin{itemize}
+\item data frames seem to return values in levels 
+\item while a tibble returns the actual x value 
+\end{itemize}
+```{r}
+#data frame
+df <- data.frame(abc = 1, xyz = "a")
+tib <- tibble(x = "abc", y = "a")
+df$x
+tib$x
+df[, "xyz"]
+df[, c("abc", "xyz")]
+```
+3. If you have the name of a variable stored in an object, e.g. var <- "mpg", how can you extract the reference variable from a tibble?
+```{r}
+var <- "mpg"
+tib <- tibble(var, y = "a")
+select(tib,var)
+
+```
+
+4. Practice referring to non-syntactic names in the following data frame by:
+
+a) Extracting the variable called 1.
+```{r}
+tib <- tibble('1' = "abc", '2' = "test")
+tib$'1'
+```
+
+b) Plotting a scatterplot of 1 vs 2.
+```{r}
+tib <- tibble('1' = 1:3, '2' = 4:6)
+ggplot(tib, aes(x = `1`, y = `2`)) + geom_point()
+```
+
+c) Creating a new column called 3 which is 2 divided by 1.
+```{r}
+tib <-
+  tib %>%
+  mutate(`3` = `2`/`1`)
+```
+
+d) Renaming the columns to one, two and three.
+```{r}
+tib %>%
+  rename(one = `1`,
+         two = `2`,
+         three = `3`)
+```
+
+5. What does tibble::enframe() do? When might you use it?
+enframe() takes a vector or list and converts it to a dataframe 
+```{r}
+x <- c(1:5)
+enframe(x)
+
+c <- enframe(list(a = 2, b = 3))
+```
+
+6. What option controls how many additional column names are printed at the footer of a tibble?
+- tibble.max_extra_cols controls how many additional columns are printed at the end 
+
+
+## 12.6.1 Exercises
+```{r}
+library(tidyverse)
+who1 <- who %>% 
+  gather(new_sp_m014:newrel_f65, key = "key", value = "cases", na.rm = TRUE)
+
+who2 <- who1 %>% 
+  mutate(key = stringr::str_replace(key, "newrel", "new_rel"))
+
+who3 <- who2 %>% 
+  separate(key, c("new", "type", "sexage"), sep = "_")
+
+who4 <- who3 %>% 
+  select(-new, -iso2, -iso3)
+
+who5 <- who4 %>% 
+  separate(sexage, c("sex", "age"), sep = 1)
+
+who %>%
+  gather(code, value, new_sp_m014:newrel_f65, na.rm = TRUE) %>% 
+  mutate(code = stringr::str_replace(code, "newrel", "new_rel")) %>%
+  separate(code, c("new", "var", "sexage")) %>% 
+  select(-new, -iso2, -iso3) %>% 
+  separate(sexage, c("sex", "age"), sep = 1)
+```
+
+1. In this case study I set na.rm = TRUE just to make it easier to check that we had the correct values. Is this reasonable? Think about how missing values are represented in this dataset. Are there implicit missing values? What’s the difference between an NA and zero?
+Sure, it's reasonable. Setting na.rm to True allows those 'missing' values to be represented as not applicable, so users can see
+what values are actually missing. Therefore, the difference between NA and Zero is NA would imply a missing value, while zero is the 
+actual value 
+
+2. What happens if you neglect the mutate() step? (mutate(key = stringr::str_replace(key, "newrel", "new_rel")))
+If the mutate step is skipped, the missing data set values are not properly replaced and you're given an error message
+similar to before. To avoid that error the mutate() step seems to be replacing those strings
+```{r}
+who %>%
+  gather(code, value, new_sp_m014:newrel_f65, na.rm = TRUE) %>% 
+  #mutate(code = stringr::str_replace(code, "newrel", "new_rel")) %>%
+  separate(code, c("new", "var", "sexage")) %>% 
+  select(-new, -iso2, -iso3) %>% 
+  separate(sexage, c("sex", "age"), sep = 1)
+```
+
+3. I claimed that iso2 and iso3 were redundant with country. Confirm this claim.
+```{r}
+select(who3, country, iso2, iso3) %>%
+  distinct() %>%
+  group_by(country) %>%
+  filter(n() > 1)
+```
+
+4. For each country, year, and sex compute the total number of cases of TB. Make an informative visualisation of the data.
+We can use the data from who5, which holds the sex and age variables to grab those variables and group by 
+country,year and sex 
+```{r}
+who5 %>%
+  group_by(country, year, sex) %>%
+  filter(year > 2000) %>%
+  summarise(cases = sum(cases)) %>%
+  unite(country_sex, country, sex, remove=FALSE) %>%
+  ggplot(aes(x = year, y = cases, group = country_sex, colour = sex)) +
+  geom_line()
+```
