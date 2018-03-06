@@ -1,4 +1,10 @@
 ---
+output:
+  pdf_document: default
+  html_document: default
+---
+<!-- \usepackage{booktabs} -->
+---
 title: "MA 415: Assignment 4"
 output: pdf_document
 author: "Kayla Ippongi"
@@ -7,6 +13,14 @@ author: "Kayla Ippongi"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(knitr)
+#library(memisc)
+library(foreign)
+library(haven)
+#library(printr)
+
 ```
 
 ## Section 10.5 Exercises 
@@ -142,4 +156,55 @@ who5 %>%
   unite(country_sex, country, sex, remove=FALSE) %>%
   ggplot(aes(x = year, y = cases, group = country_sex, colour = sex)) +
   geom_line()
+```
+
+
+
+##Part 2 Tidy Data Article 
+3. Use dplyr and tidyr to reproduce table 4 -> table 6
+
+```{r}
+
+path = file.path("pew.sav")
+pew = read_sav(path)
+
+religion <- pew[c("q16", "reltrad", "income")]
+religion$reltrad <- as.character(religion$reltrad)
+religion$reltrad <- str_replace(religion$reltrad, " Churches", "")
+religion$reltrad <- str_replace(religion$reltrad, " Protestant", " Prot")
+religion$reltrad[religion$q16 == " Atheist (do not believe in God) "] <- "Atheist"
+religion$reltrad[religion$q16 == " Agnostic (not sure if there is a God) "] <- "Agnostic"
+religion$reltrad <- str_trim(religion$reltrad)
+religion$reltrad <- str_replace_all(religion$reltrad, " \\(.*?\\)", "")
+
+religion$income <- c("Less than $10,000" = "<$10k",
+                     "10 to under $20,000" = "$10-20k",
+                     "20 to under $30,000" = "$20-30k",
+                     "30 to under $40,000" = "$30-40k",
+                     "40 to under $50,000" = "$40-50k",
+                     "50 to under $75,000" = "$50-75k",
+                     "75 to under $100,000" = "$75-100k",
+                     "100 to under $150,000" = "$100-150k",
+                     "$150,000 or more" = ">150k",
+                     "Don't know/Refused (VOL)" = "Don't know/refused")[religion$income]
+
+religion$income <- factor(religion$income, levels = c("<$10k", "$10-20k", "$20-30k", "$30-40k", "$40-50k", "$50-75k", "$75-100k", "$100-150k", ">150k", "Don't know/refused"))
+
+count1 <- religion %>% count(reltrad)
+count2 <- religion %>% count(q16)
+count3 <- religion %>% count(income)
+count4 <- religion %>% group_by(reltrad, q16, income) %>% count(income)
+count5 <- count4[c("reltrad", "income", "n")]
+count6 <- count5 %>% dplyr::rename(freq = n)
+count6
+```
+
+
+##Part 2 Tidy Data Article 
+4. Use dplyr and tidyr to reproduce  table 7 -> table 8
+```{r}
+bb <- read.csv("billboard.csv")
+bb2 <- bb %>% 
+  gather(week, rank, wk1:wk76, na.rm = TRUE)
+bb2
 ```
